@@ -106,12 +106,11 @@ what you are doing in this case, and we can save an extra API call for speed.
 getaction if you must.
 """
 
-from __future__ import absolute_import, print_function, unicode_literals
+
 
 import re
 import requests
 import json
-
 
 class CivicrmError(Exception):
     pass
@@ -155,7 +154,7 @@ class CiviCRM:
         if api_call.status_code != 200:
             raise CivicrmError('request to %s failed with status code %s'
                                % (self.url, api_call.status_code))
-        results = json.loads(api_call.content)
+        results = api_call.json()
         return self._check_results(results)
 
     def _post(self, action, entity, parameters=None):
@@ -170,7 +169,7 @@ class CiviCRM:
         if api_call.status_code != 200:
             raise CivicrmError('request to %s failed with status code %s'
                                % (self.url, api_call.status_code))
-        results = json.loads(api_call.content)
+        results = api_call.json()
         # Some entities return things in the values field
         # that don't conform to the normal use elsewhere
         # Here we check for this and just return straight results
@@ -252,7 +251,7 @@ class CiviCRM:
         Takes key=value pairs from dictionary kwargs  and uses them
         to extend the params dictionary.
         """
-        for key, value in kwargs.items():
+        for key, value in list(kwargs.items()):
             if value:
                 option = "options[%s]" % key
                 params.update({option: value})
@@ -282,7 +281,7 @@ class CiviCRM:
                                % (entity, field))
         # swap keys & values for lookup keys are labels
         labels = dict((value, key) for key, value
-                      in options.items())
+                      in list(options.items()))
         if type(value) is int and str(value) in options:
             return value
         elif value in labels:
